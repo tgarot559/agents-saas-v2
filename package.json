@@ -1,0 +1,22 @@
+{
+  "name": "agents-saas",
+  "version": "1.0.0",
+  "description": "Multi-tenant SaaS platform for LinkedIn, Social Media & Prospection agents",
+  "type": "module",
+  "main": "server.js",
+  "engines": {
+    "node": "18.x"
+  },
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "echo 'Build complete'"
+  },
+  "dependencies": {
+    "express": "4.18.2",
+    "cors": "2.8.5",
+    "dotenv": "16.0.3",
+    "@supabase/supabase-js": "2.33.2",
+    "bcryptjs": "2.4.3"
+  }
+}
