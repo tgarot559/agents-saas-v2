@@ -3,5 +3,17 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "express",
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "env": {
+    "NODE_OPTIONS": "--max-old-space-size=1024"
+  },
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "engines": {
+    "node": "20.x",
+    "npm": "10.x"
+  }
 }
