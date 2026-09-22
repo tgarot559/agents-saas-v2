@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Manager</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { color: #e1306c; font-size: 24px; }
+        .btn { padding: 10px 20px; background: #e1306c; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; }
+        .btn:hover { background: #c13584; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .card h2 { color: #e1306c; margin-bottom: 15px; font-size: 18px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #e1306c; box-shadow: 0 0 0 3px rgba(225, 48, 108, 0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background: #f0f0f0; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-weight: 600; color: #333; }
+        td { padding: 12px; border-bottom: 1px solid #eee; color: #666; }
+        .badge { display: inline-block; padding: 4px 8px; background: #ffe0ec; color: #e1306c; border-radius: 3px; font-size: 12px; font-weight: 600; }
+        .user-info { display: flex; justify-content: space-between; align-items: center; }
+        .user-email { color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Social Media Manager</h1>
+            <div class="user-info">
+                <span class="user-email" id="userEmail"></span>
+                <button class="btn" onclick="logout()" style="margin-left: 20px;">Logout</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>✍️ Create Post</h2>
+            <div class="form-group">
+                <label>Post Content</label>
+                <textarea id="postContent" placeholder="What's on your mind?" rows="4"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Select Platforms</label>
+                <div>
+                    <input type="checkbox" id="instagram" value="Instagram"> Instagram
+                    <input type="checkbox" id="facebook" value="Facebook"> Facebook
+                    <input type="checkbox" id="tiktok" value="TikTok"> TikTok
+                    <input type="checkbox" id="linkedin" value="LinkedIn"> LinkedIn
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Schedule For</label>
+                <input type="datetime-local" id="scheduleTime">
+            </div>
+            <button class="btn" onclick="createPost()">Create Post</button>
+        </div>
+
+        <div class="card">
+            <h2>📅 Scheduled Posts</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Content</th>
+                        <th>Platforms</th>
+                        <th>Scheduled For</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="postsTable">
+                    <tr><td colspan="4" style="text-align: center; color: #999;">No scheduled posts</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>📊 Performance</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Platform</th>
+                        <th>Posts</th>
+                        <th>Engagement Rate</th>
+                        <th>Followers</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Instagram</td><td>24</td><td>4.2%</td><td>1,234</td></tr>
+                    <tr><td>Facebook</td><td>18</td><td>2.1%</td><td>856</td></tr>
+                    <tr><td>TikTok</td><td>32</td><td>8.5%</td><td>2,456</td></tr>
+                    <tr><td>LinkedIn</td><td>12</td><td>5.3%</td><td>1,023</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        let posts = JSON.parse(localStorage.getItem('social_posts')) || [];
+
+        if (!currentUser) {
+            alert('Please login first!');
+            window.location.href = window.opener ? 'javascript:window.close()' : '/';
+        }
+
+        document.getElementById('userEmail').textContent = currentUser.email;
+
+        function createPost() {
+            const content = document.getElementById('postContent').value;
+            const scheduleTime = document.getElementById('scheduleTime').value;
+            const platforms = [];
+
+            if (document.getElementById('instagram').checked) platforms.push('Instagram');
+            if (document.getElementById('facebook').checked) platforms.push('Facebook');
+            if (document.getElementById('tiktok').checked) platforms.push('TikTok');
+            if (document.getElementById('linkedin').checked) platforms.push('LinkedIn');
+
+            if (!content || platforms.length === 0 || !scheduleTime) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            const post = {
+                id: Date.now(),
+                content,
+                platforms: platforms.join(', '),
+                scheduledFor: new Date(scheduleTime).toLocaleString(),
+                status: 'Scheduled'
+            };
+
+            posts.push(post);
+            localStorage.setItem('social_posts', JSON.stringify(posts));
+
+            document.getElementById('postContent').value = '';
+            document.getElementById('scheduleTime').value = '';
+            document.getElementById('instagram').checked = false;
+            document.getElementById('facebook').checked = false;
+            document.getElementById('tiktok').checked = false;
+            document.getElementById('linkedin').checked = false;
+
+            loadPosts();
+        }
+
+        function loadPosts() {
+            const tbody = document.getElementById('postsTable');
+            if (posts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">No scheduled posts</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = posts.map(p => `
+                <tr>
+                    <td>${p.content.substring(0, 40)}...</td>
+                    <td>${p.platforms}</td>
+                    <td>${p.scheduledFor}</td>
+                    <td><span class="badge">${p.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.close();
+        }
+
+        loadPosts();
+    </script>
+</body>
+</html>

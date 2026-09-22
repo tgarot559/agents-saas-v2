@@ -215,7 +215,7 @@
                         <li>Template library</li>
                         <li>Real-time analytics</li>
                     </ul>
-                    <button class="btn" style="margin-top: 20px; width: 100%;">Open Agent</button>
+                    <button class="btn" style="margin-top: 20px; width: 100%;" onclick="openLinkedInAgent()">Open Agent</button>
                 </div>
 
                 <div class="card">
@@ -227,7 +227,7 @@
                         <li>Image gallery</li>
                         <li>Performance tracking</li>
                     </ul>
-                    <button class="btn" style="margin-top: 20px; width: 100%;">Open Agent</button>
+                    <button class="btn" style="margin-top: 20px; width: 100%;" onclick="openSocialMediaManager()">Open Agent</button>
                 </div>
 
                 <div class="card">
@@ -239,7 +239,7 @@
                         <li>SMTP management</li>
                         <li>Lead scoring</li>
                     </ul>
-                    <button class="btn" style="margin-top: 20px; width: 100%;">Open Agent</button>
+                    <button class="btn" style="margin-top: 20px; width: 100%;" onclick="openProspectionAgent()">Open Agent</button>
                 </div>
             </div>
         </div>
@@ -364,6 +364,18 @@
                     <td><span class="badge">Active</span></td>
                 </tr>
             `).join('');
+        }
+
+        function openLinkedInAgent() {
+            window.open('/linkedin-agent.html', 'linkedin-agent', 'width=1200,height=800');
+        }
+
+        function openSocialMediaManager() {
+            window.open('/social-media-manager.html', 'social-media-manager', 'width=1200,height=800');
+        }
+
+        function openProspectionAgent() {
+            window.open('/prospection-agent.html', 'prospection-agent', 'width=1200,height=800');
         }
 
         function handleLogout() {

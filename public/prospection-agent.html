@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prospection Agent</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { color: #ff6b6b; font-size: 24px; }
+        .btn { padding: 10px 20px; background: #ff6b6b; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; }
+        .btn:hover { background: #ee5a52; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .card h2 { color: #ff6b6b; margin-bottom: 15px; font-size: 18px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #ff6b6b; box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background: #f0f0f0; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-weight: 600; color: #333; }
+        td { padding: 12px; border-bottom: 1px solid #eee; color: #666; }
+        .badge { display: inline-block; padding: 4px 8px; background: #ffe0e0; color: #ff6b6b; border-radius: 3px; font-size: 12px; font-weight: 600; }
+        .user-info { display: flex; justify-content: space-between; align-items: center; }
+        .user-email { color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💌 Prospection Agent</h1>
+            <div class="user-info">
+                <span class="user-email" id="userEmail"></span>
+                <button class="btn" onclick="logout()" style="margin-left: 20px;">Logout</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📧 Create Email Campaign</h2>
+            <div class="form-group">
+                <label>Campaign Name</label>
+                <input type="text" id="campaignName" placeholder="e.g., Q4 Outreach">
+            </div>
+            <div class="form-group">
+                <label>Email Subject</label>
+                <input type="text" id="emailSubject" placeholder="Subject line">
+            </div>
+            <div class="form-group">
+                <label>Email Body</label>
+                <textarea id="emailBody" placeholder="Email template..." rows="5"></textarea>
+            </div>
+            <div class="form-group">
+                <label>SMTP Server</label>
+                <input type="text" id="smtpServer" placeholder="smtp.gmail.com">
+            </div>
+            <button class="btn" onclick="createCampaign()">Create Campaign</button>
+        </div>
+
+        <div class="card">
+            <h2>🎯 Active Campaigns</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Campaign</th>
+                        <th>Status</th>
+                        <th>Sent</th>
+                        <th>Opened</th>
+                        <th>Clicked</th>
+                    </tr>
+                </thead>
+                <tbody id="campaignsTable">
+                    <tr><td colspan="5" style="text-align: center; color: #999;">No campaigns yet</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>👥 Email Sequences</h2>
+            <div class="form-group">
+                <label>Add Sequence Step</label>
+                <textarea id="sequenceText" placeholder="Step 1: Initial outreach&#10;Step 2: Follow-up (3 days)&#10;Step 3: Final reminder (7 days)" rows="4"></textarea>
+            </div>
+            <button class="btn" onclick="addSequence()">Add Sequence</button>
+
+            <table style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th>Step</th>
+                        <th>Delay</th>
+                        <th>Content Preview</th>
+                    </tr>
+                </thead>
+                <tbody id="sequencesTable">
+                    <tr><td colspan="3" style="text-align: center; color: #999;">No sequences yet</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>📊 Analytics</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                        <th>Trend</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Total Emails Sent</td><td>1,234</td><td>↑ 12%</td></tr>
+                    <tr><td>Open Rate</td><td>34.5%</td><td>↑ 5%</td></tr>
+                    <tr><td>Click Rate</td><td>8.2%</td><td>↑ 2%</td></tr>
+                    <tr><td>Conversion Rate</td><td>2.1%</td><td>↑ 1%</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        let campaigns = JSON.parse(localStorage.getItem('prospection_campaigns')) || [];
+        let sequences = JSON.parse(localStorage.getItem('email_sequences')) || [];
+
+        if (!currentUser) {
+            alert('Please login first!');
+            window.location.href = window.opener ? 'javascript:window.close()' : '/';
+        }
+
+        document.getElementById('userEmail').textContent = currentUser.email;
+
+        function createCampaign() {
+            const name = document.getElementById('campaignName').value;
+            const subject = document.getElementById('emailSubject').value;
+            const body = document.getElementById('emailBody').value;
+            const smtp = document.getElementById('smtpServer').value;
+
+            if (!name || !subject || !body || !smtp) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            const campaign = {
+                id: Date.now(),
+                name,
+                subject,
+                body,
+                smtp,
+                status: 'Active',
+                sent: 0,
+                opened: 0,
+                clicked: 0
+            };
+
+            campaigns.push(campaign);
+            localStorage.setItem('prospection_campaigns', JSON.stringify(campaigns));
+
+            document.getElementById('campaignName').value = '';
+            document.getElementById('emailSubject').value = '';
+            document.getElementById('emailBody').value = '';
+            document.getElementById('smtpServer').value = '';
+
+            loadCampaigns();
+        }
+
+        function addSequence() {
+            const text = document.getElementById('sequenceText').value;
+            if (!text.trim()) {
+                alert('Please enter sequence');
+                return;
+            }
+
+            const sequence = {
+                id: Date.now(),
+                text,
+                createdAt: new Date().toLocaleDateString()
+            };
+
+            sequences.push(sequence);
+            localStorage.setItem('email_sequences', JSON.stringify(sequences));
+            document.getElementById('sequenceText').value = '';
+            loadSequences();
+        }
+
+        function loadCampaigns() {
+            const tbody = document.getElementById('campaignsTable');
+            if (campaigns.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">No campaigns yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = campaigns.map(c => `
+                <tr>
+                    <td>${c.name}</td>
+                    <td><span class="badge">${c.status}</span></td>
+                    <td>${c.sent}</td>
+                    <td>${c.opened}</td>
+                    <td>${c.clicked}</td>
+                </tr>
+            `).join('');
+        }
+
+        function loadSequences() {
+            const tbody = document.getElementById('sequencesTable');
+            if (sequences.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #999;">No sequences yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = sequences.map((s, i) => `
+                <tr>
+                    <td>Step ${i + 1}</td>
+                    <td>Auto</td>
+                    <td>${s.text.substring(0, 30)}...</td>
+                </tr>
+            `).join('');
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.close();
+        }
+
+        loadCampaigns();
+        loadSequences();
+    </script>
+</body>
+</html>
