@@ -98,6 +98,29 @@ def runner(job_id: str, req: VideoRequest):
         with lock:
             jobs[job_id].update(status='failed', finished_at=time.time(), error=str(e))
 
+def local_smoke_runner(job_id: str, data: dict):
+    out_dir = OPENMONTAGE_DIR / 'output'
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out = out_dir / f'chatgpt-smoke-{job_id}.mp4'
+    with lock:
+        jobs[job_id].update(status='running', started_at=time.time())
+    cmd = [
+        'ffmpeg','-y','-f','lavfi','-i','color=c=0x111111:s=1080x1920:d=5:r=30',
+        '-vf',"drawtext=text='OPENMONTAGE OK':fontcolor=white:fontsize=82:x=(w-text_w)/2:y=(h-text_h)/2,fade=t=in:st=0:d=0.6,fade=t=out:st=4.4:d=0.6",
+        '-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',str(out)
+    ]
+    try:
+        proc = subprocess.run(cmd, text=True, capture_output=True, timeout=120)
+        if proc.returncode == 0 and out.exists():
+            with lock:
+                jobs[job_id].update(status='completed', finished_at=time.time(), returncode=0, output_file=str(out), summary='Local OpenMontage/FFmpeg smoke test completed.', cost_usd=0.0, error=None)
+        else:
+            with lock:
+                jobs[job_id].update(status='failed', finished_at=time.time(), returncode=proc.returncode, error=(proc.stderr or proc.stdout)[-6000:])
+    except Exception as e:
+        with lock:
+            jobs[job_id].update(status='failed', finished_at=time.time(), error=str(e))
+
 def decrypt_control_job(envelope: dict) -> dict:
     if not CONTROL_PRIVATE_KEY_B64:
         raise RuntimeError('CONTROL_PRIVATE_KEY_B64 missing')
@@ -121,6 +144,16 @@ def launch_control_job():
         if float(data.get('expires_at', 0)) < time.time():
             return
         job_id = str(data['id'])
+        mode = data.get('mode', 'codex')
+        if mode == 'local_smoke':
+            with lock:
+                jobs[job_id] = {'id': job_id, 'status': 'queued', 'created_at': time.time(), 'request': {'mode': mode}}
+            try:
+                CONTROL_JOB_FILE.unlink(missing_ok=True)
+            except Exception:
+                pass
+            threading.Thread(target=local_smoke_runner, args=(job_id, data), daemon=True).start()
+            return
         req = VideoRequest(
             prompt=data['prompt'],
             brand=data.get('brand'),
