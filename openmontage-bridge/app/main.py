@@ -144,7 +144,7 @@ def startup():
 
 @app.get('/health')
 def health():
-    return {'ok': True, 'version': '0.2.0', 'openmontage_dir': str(OPENMONTAGE_DIR), 'configured': OPENMONTAGE_DIR.exists(), 'control_ready': bool(CONTROL_PRIVATE_KEY_B64)}
+    return {'ok': True, 'version': '0.2.0', 'openmontage_dir': str(OPENMONTAGE_DIR), 'configured': OPENMONTAGE_DIR.exists(), 'control_ready': bool(CONTROL_PRIVATE_KEY_B64), 'openai_key_present': bool(os.environ.get('OPENAI_API_KEY')), 'openai_key_length': len(os.environ.get('OPENAI_API_KEY',''))}
 
 @app.post('/v1/videos')
 def create_video(req: VideoRequest, authorization: Optional[str] = Header(default=None)):
