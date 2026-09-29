@@ -121,6 +121,56 @@ def local_smoke_runner(job_id: str, data: dict):
         with lock:
             jobs[job_id].update(status='failed', finished_at=time.time(), error=str(e))
 
+
+def local_template_runner(job_id: str, data: dict):
+    out_dir = OPENMONTAGE_DIR / 'output'
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out = out_dir / f'verifamende-{job_id}.mp4'
+    with lock:
+        jobs[job_id].update(status='running', started_at=time.time())
+    font = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+    regular = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+    vf = ",".join([
+        "drawbox=x=0:y=0:w=iw:h=18:color=0xF28C28:t=fill",
+        "drawbox=x=0:y=ih-18:w=iw:h=18:color=0xF28C28:t=fill",
+        f"drawtext=fontfile={font}:text='VERIFAMENDE.NET':fontcolor=0xF28C28:fontsize=46:x=(w-text_w)/2:y=170",
+        f"drawtext=fontfile={font}:text='Votre permis vous sert':fontcolor=white:fontsize=78:x=(w-text_w)/2:y=650:enable='between(t,0,4)'",
+        f"drawtext=fontfile={font}:text='à travailler ?':fontcolor=white:fontsize=78:x=(w-text_w)/2:y=760:enable='between(t,0,4)'",
+        f"drawtext=fontfile={regular}:text='Une amende peut coûter bien plus':fontcolor=white:fontsize=54:x=(w-text_w)/2:y=650:enable='between(t,4,9)'",
+        f"drawtext=fontfile={regular}:text='que 90 ou 135 euros.':fontcolor=white:fontsize=54:x=(w-text_w)/2:y=735:enable='between(t,4,9)'",
+        f"drawtext=fontfile={font}:text='AVANT DE PAYER':fontcolor=white:fontsize=82:x=(w-text_w)/2:y=620:enable='between(t,9,14)'",
+        f"drawtext=fontfile={font}:text='VÉRIFIEZ.':fontcolor=0xF28C28:fontsize=112:x=(w-text_w)/2:y=760:enable='between(t,9,14)'",
+        f"drawtext=fontfile={regular}:text='Comprendre l'amende.':fontcolor=white:fontsize=55:x=(w-text_w)/2:y=590:enable='between(t,14,20)'",
+        f"drawtext=fontfile={regular}:text='Vérifier les informations.':fontcolor=white:fontsize=55:x=(w-text_w)/2:y=680:enable='between(t,14,20)'",
+        f"drawtext=fontfile={font}:text='C'EST VOUS QUI DÉCIDEZ.':fontcolor=0xF28C28:fontsize=70:x=(w-text_w)/2:y=825:enable='between(t,14,20)'",
+        f"drawtext=fontfile={font}:text='verifamende.net':fontcolor=white:fontsize=62:x=(w-text_w)/2:y=1460",
+        "fade=t=in:st=0:d=0.5,fade=t=out:st=19.3:d=0.7"
+    ])
+    cmd = [
+        'ffmpeg','-y','-f','lavfi','-i','color=c=0x0B1220:s=1080x1920:d=20:r=30',
+        '-vf',vf,'-c:v','libx264','-preset','veryfast','-crf','20','-pix_fmt','yuv420p',
+        '-movflags','+faststart',str(out)
+    ]
+    try:
+        proc = subprocess.run(cmd, text=True, capture_output=True, timeout=180)
+        if proc.returncode == 0 and out.exists():
+            with lock:
+                jobs[job_id].update(
+                    status='completed', finished_at=time.time(), returncode=0,
+                    output_file=str(out),
+                    summary='VerifAmende vertical 20s local video completed.',
+                    cost_usd=0.0, error=None
+                )
+        else:
+            with lock:
+                jobs[job_id].update(
+                    status='failed', finished_at=time.time(), returncode=proc.returncode,
+                    error=(proc.stderr or proc.stdout)[-6000:]
+                )
+    except Exception as e:
+        with lock:
+            jobs[job_id].update(status='failed', finished_at=time.time(), error=str(e))
+
 def decrypt_control_job(envelope: dict) -> dict:
     if not CONTROL_PRIVATE_KEY_B64:
         raise RuntimeError('CONTROL_PRIVATE_KEY_B64 missing')
@@ -145,14 +195,15 @@ def launch_control_job():
             return
         job_id = str(data['id'])
         mode = data.get('mode', 'codex')
-        if mode == 'local_smoke':
+        if mode in ('local_smoke', 'local_template'):
             with lock:
                 jobs[job_id] = {'id': job_id, 'status': 'queued', 'created_at': time.time(), 'request': {'mode': mode}}
             try:
                 CONTROL_JOB_FILE.unlink(missing_ok=True)
             except Exception:
                 pass
-            threading.Thread(target=local_smoke_runner, args=(job_id, data), daemon=True).start()
+            target = local_smoke_runner if mode == 'local_smoke' else local_template_runner
+            threading.Thread(target=target, args=(job_id, data), daemon=True).start()
             return
         req = VideoRequest(
             prompt=data['prompt'],
