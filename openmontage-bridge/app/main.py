@@ -81,9 +81,16 @@ def runner(job_id: str, req: VideoRequest):
                     op = candidate
             except ValueError:
                 pass
+        log_tail = None
+        if proc.returncode != 0 or not op:
+            try:
+                log_tail = log_path.read_text(encoding='utf-8', errors='replace')[-6000:]
+            except Exception:
+                log_tail = None
         with lock:
             jobs[job_id].update(status=status, finished_at=time.time(), returncode=proc.returncode,
-                output_file=str(op) if op else None, summary=payload.get('summary'), cost_usd=payload.get('cost_usd'))
+                output_file=str(op) if op else None, summary=payload.get('summary'), cost_usd=payload.get('cost_usd'),
+                error=log_tail if proc.returncode != 0 else None, log_tail=log_tail)
     except subprocess.TimeoutExpired:
         with lock:
             jobs[job_id].update(status='failed', finished_at=time.time(), error='timeout')
@@ -187,6 +194,7 @@ def public_status(job_id: str):
             'summary': item.get('summary'),
             'cost_usd': item.get('cost_usd'),
             'error': item.get('error'),
+            'log_tail': item.get('log_tail') if item.get('status') == 'failed' else None,
             'download_ready': bool(item.get('output_file'))
         }
 
