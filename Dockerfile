@@ -9,7 +9,9 @@ WORKDIR /bridge
 COPY openmontage-bridge/requirements.txt .
 RUN python3 -m pip install --break-system-packages -r requirements.txt
 COPY openmontage-bridge/app ./app
+COPY openmontage-bridge/control ./control
 ENV OPENMONTAGE_DIR=/opt/openmontage
-ENV WORK_DIR=/tmp/openmontage-jobs
+ENV WORK_DIR=/opt/openmontage/.chatgpt-jobs
+ENV CONTROL_JOB_FILE=/bridge/control/job.enc
 EXPOSE 10000
 CMD ["sh","-c","python3 -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000}"]
