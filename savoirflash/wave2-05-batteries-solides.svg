@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#07111f"/><stop offset="1" stop-color="#020306"/></linearGradient><radialGradient id="r"><stop stop-color="#00d8ff" stop-opacity=".95"/><stop offset="1" stop-color="#07111f" stop-opacity=".05"/></radialGradient></defs>
+  <rect width="1080" height="1920" fill="url(#g)"/>
+  <circle cx="810" cy="820" r="390" fill="url(#r)"/><circle cx="270" cy="1200" r="260" fill="none" stroke="#ffd400" stroke-width="8" opacity=".55"/>
+  <text x="70" y="120" fill="#fff" font-size="58" font-weight="800" font-family="Arial">⚡ SavoirFlash</text>
+  <text x="75" y="175" fill="#ffd400" font-size="28" font-family="Arial">SCIENCE • TECH • ESPACE • FUTUR</text>
+  <text x="540" y="360" text-anchor="middle" fill="#fff" font-size="82" font-weight="900" font-family="Arial">LES BATTERIES SOLIDES</text>
+  <text x="540" y="470" text-anchor="middle" fill="#ffd400" font-size="96" font-weight="900" font-family="Arial">SE RAPPROCHENT</text>
+  <text x="540" y="980" text-anchor="middle" fill="#00d8ff" font-size="360" font-weight="900" font-family="Arial">⚡</text>
+  <rect x="95" y="1360" rx="34" width="890" height="210" fill="#0e1726" stroke="#00d8ff" stroke-width="4"/>
+  <text x="540" y="1450" text-anchor="middle" fill="#fff" font-size="46" font-family="Arial">Plus sûres et plus denses, mais encore difficiles à industrialiser.</text>
+  <text x="540" y="1520" text-anchor="middle" fill="#ffd400" font-size="42" font-weight="700" font-family="Arial">Découvre l’histoire complète ↓</text>
+  <rect x="150" y="1710" rx="55" width="780" height="110" fill="#ffd400"/><text x="540" y="1780" text-anchor="middle" fill="#050505" font-size="46" font-weight="900" font-family="Arial">Suis @savoirflashmedia</text>
+  </svg>
